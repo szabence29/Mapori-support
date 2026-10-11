@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A travel list – Mapori</title>
+<style>
+:root{--bg:#f3e9d6;--ink:#2b2118;--ink2:#6b5a48;--accent:#b5452c;--card:#fbf5ea;--hair:#e2d3bb}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1424;--ink:#efe6d6;--ink2:#a99c8a;--accent:#f0a46a;--card:#171d31;--hair:#2a3150}}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:520px;margin:0 auto;padding:48px 20px}
+.brand{font-family:"New York",Georgia,serif;font-size:20px;color:var(--ink2);margin-bottom:28px}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+h1{font-family:"New York",Georgia,serif;font-weight:500;font-size:34px;line-height:1.15;margin:6px 0 22px}
+h1 em{color:var(--accent)}
+ol{list-style:none;margin:0;padding:0 16px;background:var(--card);border-radius:22px}
+li{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--hair)}
+li:last-child{border-bottom:0}
+.n{font-family:"New York",Georgia,serif;font-size:22px;color:var(--accent);width:22px;flex:none}
+.place{font-weight:600}
+.note{font-family:"New York",Georgia,serif;font-style:italic;color:var(--ink2)}
+.more{color:var(--ink2);margin:14px 4px 0}
+a.btn{display:block;text-align:center;margin-top:22px;padding:15px 26px;border-radius:999px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600}
+small{display:block;margin-top:26px;color:var(--ink2);text-align:center}
+</style></head><body><main>
+<div class="brand">Mapori</div>
+<div class="kicker" id="kicker">A travel list</div>
+<h1 id="title">Places worth the trip</h1>
+<ol id="list"></ol>
+<p class="more" id="more" hidden></p>
+<a class="btn" id="open" href="#">Open in Mapori</a>
+<small>Don’t have Mapori yet? It’s free on the App Store – search for “Mapori”. Then tap this link again.<br>
+The list is in this link itself; this page sends nothing anywhere.</small>
+</main>
+<script>
+// Az ajánló lista a # utáni részben van: a böngésző ezt nem küldi el a szervernek. Csak textContent, HTML nem kerül be.
+const q = new URLSearchParams(location.hash.slice(1));
+const clip = (s, n) => (s || '').slice(0, n);
+const from = clip(q.get('n'), 40), country = clip(q.get('cn') || q.get('c'), 60);
+const places = q.getAll('p').slice(0, 12), names = q.getAll('pn');
+const el = id => document.getElementById(id);
+if (from) el('kicker').textContent = 'A list from ' + from;
+if (places.length && country) {
+  const h = el('title');
+  h.textContent = (from ? from + ' recommends ' : '') + places.length + (places.length === 1 ? ' place in ' : ' places in ');
+  const em = document.createElement('em'); em.textContent = country; h.append(em);
+}
+places.slice(0, 3).forEach((p, i) => {
+  const [key, ...rest] = p.split('|');
+  const li = document.createElement('li');
+  const n = document.createElement('div'); n.className = 'n'; n.textContent = i + 1;
+  const body = document.createElement('div');
+  const name = document.createElement('div'); name.className = 'place'; name.textContent = clip(names[i] || key.split(':')[1], 60);
+  body.append(name);
+  const note = clip(rest.join('|'), 140);
+  if (note) { const d = document.createElement('div'); d.className = 'note'; d.textContent = note; body.append(d); }
+  li.append(n, body); el('list').append(li);
+});
+if (!places.length) el('list').hidden = true;
+if (places.length > 3) { el('more').hidden = false; el('more').textContent = '+ ' + (places.length - 3) + ' more in the app'; }
+// Az app a saját atlaszából ír nevet: a pn/cn részt nem kell átadni, de nem is zavarja.
+el('open').href = 'mapori://recommend?' + location.hash.slice(1);
+</script>
+</body></html>
